@@ -1,122 +1,160 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TodoListApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TodoListApp extends StatelessWidget {
+  const TodoListApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Todo List Mingguan',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.teal,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const TodoHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class TodoHomePage extends StatefulWidget {
+  const TodoHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _TodoHomePageState createState() => _TodoHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _TodoHomePageState extends State<TodoHomePage> {
+  // ✅ Struktur data untuk tugas per hari dengan status (selesai atau belum)
+  final Map<String, List<Map<String, dynamic>>> _weeklyTodos = {
+    'Senin': [],
+    'Selasa': [],
+    'Rabu': [],
+    'Kamis': [],
+    'Jumat': [],
+    'Sabtu': [],
+    'Minggu': [],
+  };
 
-  void _incrementCounter() {
+  final TextEditingController _controller = TextEditingController();
+  String _selectedDay = 'Senin'; // ✅ Hari default saat input tugas
+
+  // ✅ Tambah tugas ke hari tertentu
+  void _addTodo() {
+    final text = _controller.text;
+    if (text.isNotEmpty) {
+      setState(() {
+        _weeklyTodos[_selectedDay]!.add({
+          'task': text,
+          'isDone': false, // Status awal tugas adalah belum selesai
+        });
+        _controller.clear();
+      });
+    }
+  }
+
+  // ✅ Hapus tugas dari hari tertentu
+  void _removeTodo(String day, int index) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _weeklyTodos[day]!.removeAt(index);
+    });
+  }
+
+  // ✅ Ubah status tugas (selesai/belum selesai)
+  void _toggleTaskStatus(String day, int index) {
+    setState(() {
+      _weeklyTodos[day]![index]['isDone'] = !_weeklyTodos[day]![index]['isDone'];
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('To-Do List Mingguan'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          children: [
+            // ✅ Form input tugas + dropdown hari
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Tambahkan Tugas',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: _selectedDay,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDay = value!;
+                    });
+                  },
+                  items: _weeklyTodos.keys
+                      .map((day) => DropdownMenuItem(
+                            value: day,
+                            child: Text(day),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _addTodo,
+                  child: const Text('Tambah'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // ✅ Tampilan daftar tugas mingguan
+            Expanded(
+              child: ListView(
+                children: _weeklyTodos.entries.map((entry) {
+                  final day = entry.key;
+                  final todos = entry.value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        day,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      ...todos.asMap().entries.map((item) {
+                        return Card(
+                          child: ListTile(
+                            leading: Checkbox(
+                              value: item.value['isDone'],
+                              onChanged: (_) => _toggleTaskStatus(day, item.key),
+                            ),
+                            title: Text(item.value['task']),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _removeTodo(day, item.key),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      const SizedBox(height: 8),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
