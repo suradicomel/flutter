@@ -49,7 +49,7 @@ class _TodoHomePageState extends State<TodoHomePage> {
       setState(() {
         _weeklyTodos[_selectedDay]!.add({
           'task': text,
-          'isDone': false, // Status awal tugas adalah belum selesai
+          'is Done': false, // Status awal tugas adalah belum selesai
         });
         _controller.clear();
       });
